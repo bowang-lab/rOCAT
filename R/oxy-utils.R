@@ -1,6 +1,6 @@
+
 #' @title FUNCTION_TITLE
 #' @description FUNCTION_DESCRIPTION
-
 #' @return OUTPUT_DESCRIPTION
 #' @details DETAILS
 #' @examples 
@@ -10,33 +10,19 @@
 #'  }
 #' }
 #' @seealso 
-#'  \code{\link[reticulate]{py_install}}
+#'  \code{\link[reticulate]{py_module_available}}, \code{\link[reticulate]{py_install}}
 #' @rdname install_packages
 #' @export 
-#' @importFrom reticulate py_install
+#' @importFrom reticulate py_module_available py_install
 install_packages <- function(){
-  reticulate::py_install('git+https://github.com/bowang-lab/OCAT.git',pip=TRUE)
-  reticulate::py_install('faiss')
-  reticulate::py_install("scikit-learn")
+  if (!reticulate::py_module_available("OCAT"))
+    reticulate::py_install("git+https://github.com/bowang-lab/OCAT.git")
+  if (!reticulate::py_module_available("faiss"))
+    reticulate::py_install('faiss')
+  if (!reticulate::py_module_available("sklearn"))
+    reticulate::py_install("scikit-learn")
+  return(TRUE)
 }
-
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param data_list PARAM_DESCRIPTION
-#' @return OUTPUT_DESCRIPTION
-#' @details DETAILS
-#' @examples 
-#' \dontrun{
-#' if(interactive()){
-#'  #EXAMPLE1
-#'  }
-#' }
-#' @rdname test_function
-#' @export 
-test_function <- function(data_list){
-  return(1)
-}
-
 
 #' @title FUNCTION_TITLE
 #' @description FUNCTION_DESCRIPTION
