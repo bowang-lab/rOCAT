@@ -27,5 +27,5 @@ if(interactive()){
 }
 }
 \seealso{
-\code{\link[reticulate]{py_install}}
+\code{\link[reticulate]{py_module_available}}, \code{\link[reticulate]{py_install}}
 }
