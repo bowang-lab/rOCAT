@@ -1,10 +1,11 @@
-#' @description  install required python packages
+#' @description install required python packages
 #' @export
 install_packages <- function(){
   reticulate::py_install('git+https://github.com/bowang-lab/OCAT.git',pip=TRUE)
   reticulate::py_install('faiss')
   reticulate::py_install("scikit-learn")
-  }
+}
+
 
 #' @description  normalize all cells by log10(x+1)
 #' @export

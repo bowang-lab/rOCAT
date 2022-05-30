@@ -1,6 +1,6 @@
 Package: rOCAT
 Title:  An R Interface to OCAT
-Version: 0.0.0.9000
+Version: 0.0.0.9
 Authors@R: 
     person("Chong", "Shao", , "chong.shao@mail.utoronto.ca", role = c("aut", "cre"),)
 Description: This is the R Interface for One Cell At a Time(OCAT) python implmentation.
