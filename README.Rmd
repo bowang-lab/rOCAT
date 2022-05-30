@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-This is the R package for One Cell At A Time(OCAT), which provides a fast and memory-efficient framework for analyzing and integrating large-scale scRNA-seq data. Details of the methods can be check [here](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02659-1).
+This is the R package for One Cell At A Time(OCAT), which provides a fast and memory-efficient framework for analyzing and integrating large-scale scRNA-seq data. Details of the method can be check [here](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02659-1).
 
 # Installation
 
@@ -46,18 +46,20 @@ The **multiple** datasets consist of five scRNA-seq datasets (Baron et al. 2016,
 
 ### load package
 
-```{r example}
+```r
 library(rOCAT)
 library(reticulate)
 ```
 
 ### import data
 
-```{r import}
+```r
 # load Test Zeisel data
 data <- R.matlab::readMat('../data/Test_5_Zeisel.mat')
+
 # extract the gene feature matrix and make it saved as a sparse matrix
 in_X <- as(data$in.X, 'dgCMatrix')
+
 # extract the labels
 labels_true <- as.vector(data$true.labs)
 
@@ -67,19 +69,18 @@ data_list <- c(in_X)
 
 ### run OCAT pipeline
 
-```{r run, warning=FALSE, message=FALSE}
+```r
 ZW <- run_OCAT(data_list, m_list=list(50), dim=30, 
                 p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE, 
                 random_seed=42)
-
-# first 5x5 dimension of ZW
-ZW[1:5,1:5]
 ```
 
 ### clustering and evaluation
 
-```{r run_OCAT}
+```r
 labels_pred <- evaluate_clusters(np_array(ZW),num_cluster = length(unique(labels_true)))
+
+# get the NMI score between our predicted cell type and the true cell type 
 normalized_mutual_info_score(labels_true, labels_pred)
 ```
 
@@ -87,7 +88,7 @@ normalized_mutual_info_score(labels_true, labels_pred)
 
 ### import datasets
 
-```{r import_multiple_dataset}
+```r
 # the data is saved in .npz file in this example, so we need scipy from python to help read the data
 scipy <- reticulate::import("scipy.sparse")
 data_path <- "../data/Pancreas/data/"
@@ -97,31 +98,40 @@ data_list <- lapply(files,  FUN = function(x) scipy$load_npz(paste0(data_path,x,
 # import the labels
 np <- reticulate::import("numpy") 
 label_path <- "../data/Pancreas/label/"
+
+# load the labels from each batch and combine them into one file
 labels <- lapply(files,  FUN = function(x) np$load(paste0(label_path,x,"_label.npy"),allow_pickle = TRUE))
 labels_true_combined <- do.call(c, labels)
+
+# also save the batch number together
 batch_true_combined <- rep(files,lengths(labels)) #batch labels 
 ```
 
 ### run OCAT pipline
 
-```{r run_multiple_dataset, warning=FALSE, message=FALSE}
+```r
 m_list <- list(65, 65, 65, 65, 65)
+
+# execute the pipeline in these datasets
 pancreatic_ZW <- run_OCAT(data_list, m_list, dim=60, p=0.3, log_norm=TRUE, l2_norm=TRUE)
-pancreatic_ZW[0:5,0:5]
 ```
 
 ### clustering and evaluation
 
 #### cell type clustering
 
-```{r cell_type_cluster}
+```r
 cell_type_pred <- evaluate_clusters(pancreatic_ZW, num_cluster = length(unique(labels_true_combined)))
+
+# get the NMI score between our predicted cell type and the true cell type
 normalized_mutual_info_score(labels_true_combined,cell_type_pred)
 ```
 
 #### batch clustering
 
-```{r batch_cluster}
+```r
 batch_pred <- evaluate_clusters(pancreatic_ZW, num_cluster = length(files))
+
+# get the NMI score between our predicted batch and the true batch
 normalized_mutual_info_score(batch_true_combined,batch_pred)
 ```

@@ -1,5 +1,10 @@
-rOCAT
-================
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# rOCAT
 
 -   [1 Installation](#1-installation)
 -   [2 Example](#2-example)
@@ -18,6 +23,7 @@ rOCAT
             evaluation](#223-clustering-and-evaluation)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
 <!-- badges: start -->
 
 [![Travis build
@@ -25,7 +31,10 @@ status](https://travis-ci.com/bowang-lab/rOCAT.svg?branch=main)](https://travis-
 
 <!-- badges: end -->
 
-The goal of rOCAT is to …
+This is the R package for One Cell At A Time(OCAT), which provides a
+fast and memory-efficient framework for analyzing and integrating
+large-scale scRNA-seq data. Details of the method can be check
+[here](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02659-1).
 
 # 1 Installation
 
@@ -39,9 +48,16 @@ devtools::install_github("bowang-lab/rOCAT")
 
 # 2 Example
 
-This is a basic example which shows you how to solve a common problem:
+Here we demonstrate how to sparsely encodes single-cell gene expression
+data on both single and multiple datasets
 
-The dataset Test_5\_Zeisel.mat can be download [here]().
+The **single** dataset using 3,005 cells and 4,412 genes in the mouse
+somatosensory cortex and hippocampal CA1 region from Zeisel et
+al. (2015) and can be download [here]().
+
+The **multiple** datasets consist of five scRNA-seq datasets (Baron et
+al. 2016, Muraro et al. 2016, Segerstolpe et al. 2016, Wang et al. 2016,
+Xin et al. 2016) and can be download [here]().
 
 ## 2.1 Working with Single Dataset
 
@@ -57,8 +73,10 @@ library(reticulate)
 ``` r
 # load Test Zeisel data
 data <- R.matlab::readMat('../data/Test_5_Zeisel.mat')
+
 # extract the gene feature matrix and make it saved as a sparse matrix
 in_X <- as(data$in.X, 'dgCMatrix')
+
 # extract the labels
 labels_true <- as.vector(data$true.labs)
 
@@ -72,25 +90,15 @@ data_list <- c(in_X)
 ZW <- run_OCAT(data_list, m_list=list(50), dim=30, 
                 p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE, 
                 random_seed=42)
-#> [1] "Starting Dimension Reduction"
-#> [1] "Dimension Reduction Finished"
-
-# first 5x5 dimension of ZW
-ZW[1:5,1:5]
-#>             [,1]        [,2]        [,3]        [,4]       [,5]
-#> [1,] 0.001819295 0.004266508 0.003887158 0.001397503 0.04628960
-#> [2,] 0.002862158 0.004538172 0.003428339 0.001378417 0.06061592
-#> [3,] 0.002298867 0.004474250 0.004187966 0.001341240 0.05554514
-#> [4,] 0.002074808 0.004342816 0.004458587 0.001553739 0.05094255
-#> [5,] 0.001530818 0.004259680 0.004892700 0.001822031 0.04234504
 ```
 
 ### 2.1.4 clustering and evaluation
 
 ``` r
 labels_pred <- evaluate_clusters(np_array(ZW),num_cluster = length(unique(labels_true)))
+
+# get the NMI score between our predicted cell type and the true cell type 
 normalized_mutual_info_score(labels_true, labels_pred)
-#> [1] 0.7884375
 ```
 
 ## 2.2 Working with Multiple Datasets
@@ -107,8 +115,12 @@ data_list <- lapply(files,  FUN = function(x) scipy$load_npz(paste0(data_path,x,
 # import the labels
 np <- reticulate::import("numpy") 
 label_path <- "../data/Pancreas/label/"
+
+# load the labels from each batch and combine them into one file
 labels <- lapply(files,  FUN = function(x) np$load(paste0(label_path,x,"_label.npy"),allow_pickle = TRUE))
 labels_true_combined <- do.call(c, labels)
+
+# also save the batch number together
 batch_true_combined <- rep(files,lengths(labels)) #batch labels 
 ```
 
@@ -116,16 +128,9 @@ batch_true_combined <- rep(files,lengths(labels)) #batch labels
 
 ``` r
 m_list <- list(65, 65, 65, 65, 65)
+
+# execute the pipeline in these datasets
 pancreatic_ZW <- run_OCAT(data_list, m_list, dim=60, p=0.3, log_norm=TRUE, l2_norm=TRUE)
-#> [1] "Starting Dimension Reduction"
-#> [1] "Dimension Reduction Finished"
-pancreatic_ZW[0:5,0:5]
-#>             [,1]       [,2]        [,3]        [,4]        [,5]
-#> [1,] 0.006040815 0.01143108 0.010623352 0.005410251 0.009862246
-#> [2,] 0.005507492 0.01095782 0.006144693 0.007255905 0.008626724
-#> [3,] 0.006875831 0.01218184 0.005919864 0.014213251 0.008533677
-#> [4,] 0.004385151 0.00766135 0.004018047 0.003530303 0.005135434
-#> [5,] 0.004746339 0.01214920 0.005628659 0.004717387 0.008688286
 ```
 
 ### 2.2.3 clustering and evaluation
@@ -134,14 +139,16 @@ pancreatic_ZW[0:5,0:5]
 
 ``` r
 cell_type_pred <- evaluate_clusters(pancreatic_ZW, num_cluster = length(unique(labels_true_combined)))
+
+# get the NMI score between our predicted cell type and the true cell type
 normalized_mutual_info_score(labels_true_combined,cell_type_pred)
-#> [1] 0.7595895
 ```
 
 #### 2.2.3.2 batch clustering
 
 ``` r
 batch_pred <- evaluate_clusters(pancreatic_ZW, num_cluster = length(files))
+
+# get the NMI score between our predicted batch and the true batch
 normalized_mutual_info_score(batch_true_combined,batch_pred)
-#> [1] 0.03593664
 ```

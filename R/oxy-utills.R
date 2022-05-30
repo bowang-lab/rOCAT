@@ -11,10 +11,10 @@
 #' }
 #' @seealso 
 #'  \code{\link[reticulate]{py_install}}
-#' @rdname load_all
+#' @rdname install_packages
 #' @export 
 #' @importFrom reticulate py_install
-load_all <- function(){
+install_packages <- function(){
   reticulate::py_install('git+https://github.com/bowang-lab/OCAT.git',pip=TRUE)
   reticulate::py_install('faiss')
   reticulate::py_install("scikit-learn")
