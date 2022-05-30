@@ -1,5 +1,13 @@
+#' @description  install required python packages
+#' @export
+load_all <- function(){
+  reticulate::py_install('git+https://github.com/bowang-lab/OCAT.git',pip=TRUE)
+  reticulate::py_install('faiss')
+  reticulate::py_install("scikit-learn")
+  }
 
-#' @description  normalize all cells by log10(x+!)
+
+#' @description  normalize all cells by log10(x+1)
 #' @export
 normalize_data <- function(data_list){
   data_list <- sapply(data_list, function(x) log10(x+1))
@@ -76,14 +84,14 @@ dim_estimate <- function(data_list){
 apply_dim_reduct <- function(data_list, dim=NULL, mode='FSM', random_seed=42, upsample=FALSE){
   if (is.null(dim))
     dim <- dim_estimate(data_list)
-  if (!reticulate::py_has_attr(py,'OCAT'))
-    reticulate::py_run_string("import OCAT")
+
+  OCAT <- reticulate::import('OCAT')
   
   print("Starting Dimension Reduction")
   scipy <- reticulate::import("scipy.sparse",convert = FALSE)
   preprocessed_converted_data <- lapply(data_list, function(x) scipy$csr_matrix(reticulate::np_array(x,dtype='float32')))
   reticulate::py_run_string(glue::glue("dim = int({dim});random_seed = {random_seed};upsample={reticulate::r_to_py(upsample)};mode='{mode}'"))
-  dim_reducted <- py$OCAT$apply_dim_reduct(preprocessed_converted_data,dim=py$dim,mode = py$mode, random_seed = py$random_seed,upsample = py$upsample)
+  dim_reducted <- OCAT$apply_dim_reduct(preprocessed_converted_data,dim=py$dim,mode = py$mode, random_seed = py$random_seed,upsample = py$upsample)
   print("Dimension Reduction Finished")
   return(dim_reducted)
 }
@@ -95,8 +103,7 @@ apply_dim_reduct <- function(data_list, dim=NULL, mode='FSM', random_seed=42, up
 #' @return anchor_list [(m,n)...(m,n)] list of anchors
 #' @export
 find_anchors <- function(data_list,m_list){
-  if (!reticulate::py_has_attr(py,'Kmeans'))
-    reticulate::py_run_string("from faiss import Kmeans",convert=FALSE)
+  faiss <- reticulate::import('faiss')
   
   anchor_list <- vector(mode = "list", length = length(data_list))
   for (X in seq_along(data_list)){
@@ -104,7 +111,7 @@ find_anchors <- function(data_list,m_list){
     temp <- reticulate::np_array(as(data_list[[X]],"matrix"),dtype = 'float32')
     m <- m_list[[X]]
     reticulate::py_run_string(glue::glue("dim={dim1};k={m}",convert=FALSE))
-    kmean <- py$Kmeans(py$dim,py$k)
+    kmean <- faiss$Kmeans(py$dim,py$k)
     kmean$train(temp)
     anchors <- kmean$centroids
     anchor_list[[X]] <- as(anchors,"matrix")
@@ -124,9 +131,7 @@ find_anchors <- function(data_list,m_list){
 #'
 #' @export
 sparse_encoding_integration <- function(data_list, m_list, s_list, p=0.3, cn=5, if_inference=TRUE){
-  if (!reticulate::py_has_attr(py,'OCAT'))
-    reticulate::py_run_string("import OCAT")
-  
+  OCAT <- reticulate::import('OCAT')
   anchor_list <- find_anchors(data_list, m_list)
   
   Z_list <- NULL
@@ -139,7 +144,7 @@ sparse_encoding_integration <- function(data_list, m_list, s_list, p=0.3, cn=5, 
     for (j in seq_along(anchor_list)){
       anchor <- reticulate::np_array(anchor_list[[j]],dtype='float32')
       reticulate::py_run_string(glue::glue("s = {s_list[[j]]};flag=2;cn = {cn}"))
-      Z <- py$OCAT$sparse_encoding$AnchorGraph(dataset$transpose(),anchor$transpose(),py$s,py$flag,py$cn)
+      Z <- OCAT$sparse_encoding$AnchorGraph(dataset$transpose(),anchor$transpose(),py$s,py$flag,py$cn)
       Z <- as(Z,'matrix')
       dataset_Z_list <- cbind(dataset_Z_list,Z)
       dataset_Z_list <- as(dataset_Z_list,'matrix')
@@ -148,11 +153,11 @@ sparse_encoding_integration <- function(data_list, m_list, s_list, p=0.3, cn=5, 
     dataset_Z_list <- as(Z_list,'matrix') #make sure it keeps the dim with multiple datasets
   }
   Z <- reticulate::np_array(Z_list)
-  ZW_Wanchor <- py$OCAT$sparse_encoding$Z_to_ZW(Z)
+  ZW_Wanchor <- OCAT$sparse_encoding$Z_to_ZW(Z)
   ZW <- ZW_Wanchor[[1]]
   ZW[is.na(ZW)] <- 0
   W_anchor <- ZW_Wanchor[[2]]
-  ZW <- py$OCAT$sparse_encoding$norm(ZW)
+  ZW <- OCAT$sparse_encoding$norm(ZW)
   if (if_inference)
     return(list(ZW,anchor_list,s_list,W_anchor))
   else
@@ -235,7 +240,8 @@ run_OCAT.Seurat <- function(object, reduction.name ='ocat',m_list=NULL, s_list=N
 #' @return labels_pred  predicted labels 
 #' @export
 evaluate_clusters <- function(ZW, num_clusters){
-  labels_pred <- py$OCAT$evaluate_clusters(reticulate::np_array(ZW),num_clusters)
+  OCAT <- reticulate::import('OCAT')
+  labels_pred <- OCAT$evaluate_clusters(reticulate::np_array(ZW),num_clusters)
   return(labels_pred)
 }
 
@@ -246,8 +252,7 @@ evaluate_clusters <- function(ZW, num_clusters){
 #' @return NMI     NMI score
 #' @export
 normalized_mutual_info_score <- function(labels_true, labels_pred){
-  if (!reticulate::py_has_attr(py,'normalized_mutual_info_score'))
-    reticulate::py_run_string("from sklearn.metrics.cluster import normalized_mutual_info_score")
-  NMI <- py$normalized_mutual_info_score(labels_true, labels_pred)
+  sklearn <- reticulate::import('sklearn')
+  NMI <- sklearn$metrics$cluster$normalized_mutual_info_score(labels_true, labels_pred)
   return(NMI)
 }

@@ -17,7 +17,7 @@ OUTPUT_DESCRIPTION
 \description{
 FUNCTION_DESCRIPTION
 
-normalize all cells by log10(x+!)
+normalize all cells by log10(x+1)
 }
 \details{
 DETAILS
