@@ -57,6 +57,6 @@ if(interactive()){
 }
 }
 \seealso{
-\code{\link[reticulate]{py_has_attr}}, \code{\link[reticulate]{py_run}}, \code{\link[reticulate]{np_array}}
+\code{\link[reticulate]{import}}, \code{\link[reticulate]{np_array}}, \code{\link[reticulate]{py_run}}
 \code{\link[glue]{glue}}
 }

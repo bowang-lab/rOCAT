@@ -35,5 +35,5 @@ if(interactive()){
 }
 }
 \seealso{
-\code{\link[reticulate]{np_array}}
+\code{\link[reticulate]{import}}, \code{\link[reticulate]{np_array}}
 }
