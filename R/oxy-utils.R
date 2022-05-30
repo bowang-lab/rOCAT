@@ -18,7 +18,24 @@ install_packages <- function(){
   reticulate::py_install('git+https://github.com/bowang-lab/OCAT.git',pip=TRUE)
   reticulate::py_install('faiss')
   reticulate::py_install("scikit-learn")
-  }
+}
+
+#' @title FUNCTION_TITLE
+#' @description FUNCTION_DESCRIPTION
+#' @param data_list PARAM_DESCRIPTION
+#' @return OUTPUT_DESCRIPTION
+#' @details DETAILS
+#' @examples 
+#' \dontrun{
+#' if(interactive()){
+#'  #EXAMPLE1
+#'  }
+#' }
+#' @rdname test_function
+#' @export 
+test_function <- function(data_list){
+  return(1)
+}
 
 
 #' @title FUNCTION_TITLE

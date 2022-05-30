@@ -1,45 +1,30 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
 # rOCAT
 
 -   [1 Installation](#1-installation)
 -   [2 Example](#2-example)
-    -   [2.1 Working with Single
-        Dataset](#21-working-with-single-dataset)
+    -   [2.1 Working with Single Dataset](#21-working-with-single-dataset)
         -   [2.1.1 load package](#211-load-package)
         -   [2.1.2 import data](#212-import-data)
         -   [2.1.3 run OCAT pipeline](#213-run-ocat-pipeline)
-        -   [2.1.4 clustering and
-            evaluation](#214-clustering-and-evaluation)
-    -   [2.2 Working with Multiple
-        Datasets](#22-working-with-multiple-datasets)
+        -   [2.1.4 clustering and evaluation](#214-clustering-and-evaluation)
+    -   [2.2 Working with Multiple Datasets](#22-working-with-multiple-datasets)
         -   [2.2.1 import datasets](#221-import-datasets)
         -   [2.2.2 run OCAT pipline](#222-run-ocat-pipline)
-        -   [2.2.3 clustering and
-            evaluation](#223-clustering-and-evaluation)
+        -   [2.2.3 clustering and evaluation](#223-clustering-and-evaluation)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 <!-- badges: start -->
 
-[![Travis build
-status](https://travis-ci.com/bowang-lab/rOCAT.svg?branch=main)](https://travis-ci.com/bowang-lab/rOCAT)
+[![Travis build status](https://travis-ci.com/bowang-lab/rOCAT.svg?branch=main)](https://travis-ci.com/bowang-lab/rOCAT)
 
 <!-- badges: end -->
 
-This is the R package for One Cell At A Time(OCAT), which provides a
-fast and memory-efficient framework for analyzing and integrating
-large-scale scRNA-seq data. Details of the method can be check
-[here](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02659-1).
+This is the R package for One Cell At A Time(OCAT), which provides a fast and memory-efficient framework for analyzing and integrating large-scale scRNA-seq data. Details of the method can be check [here](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02659-1).
 
 # 1 Installation
 
-You can install the development version of rOCAT from
-[GitHub](https://github.com/bowang-lab/rOCAT) with:
+You can install the development version of rOCAT from [GitHub](https://github.com/bowang-lab/rOCAT) with:
 
 ``` r
 # install.packages("devtools")
@@ -48,16 +33,11 @@ devtools::install_github("bowang-lab/rOCAT")
 
 # 2 Example
 
-Here we demonstrate how to sparsely encodes single-cell gene expression
-data on both single and multiple datasets
+Here we demonstrate how to sparsely encodes single-cell gene expression data on both single and multiple datasets
 
-The **single** dataset using 3,005 cells and 4,412 genes in the mouse
-somatosensory cortex and hippocampal CA1 region from Zeisel et
-al. (2015) and can be download [here]().
+The **single** dataset using 3,005 cells and 4,412 genes in the mouse somatosensory cortex and hippocampal CA1 region from Zeisel et al. (2015) and can be download [here]().
 
-The **multiple** datasets consist of five scRNA-seq datasets (Baron et
-al. 2016, Muraro et al. 2016, Segerstolpe et al. 2016, Wang et al. 2016,
-Xin et al. 2016) and can be download [here]().
+The **multiple** datasets consist of five scRNA-seq datasets (Baron et al. 2016, Muraro et al. 2016, Segerstolpe et al. 2016, Wang et al. 2016, Xin et al. 2016) and can be download [here]().
 
 ## 2.1 Working with Single Dataset
 
