@@ -14,7 +14,7 @@ OUTPUT_DESCRIPTION
 \description{
 FUNCTION_DESCRIPTION
 
-install required python packages
+initialize required python packages
 }
 \details{
 DETAILS

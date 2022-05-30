@@ -1,9 +1,14 @@
-#' @description install required python packages
+#' @description initialize required python packages
 #' @export
 install_packages <- function(){
   reticulate::py_install('git+https://github.com/bowang-lab/OCAT.git',pip=TRUE)
   reticulate::py_install('faiss')
   reticulate::py_install("scikit-learn")
+}
+
+#' @export
+test_function <- function(data_list){
+  return(1)
 }
 
 
