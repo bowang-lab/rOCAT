@@ -46,14 +46,20 @@ The **multiple** datasets consist of five scRNA-seq datasets (Baron et al. 2016,
 
 ### load package
 
-```r
+``` r
 library(rOCAT)
-library(reticulate)
+library(reticulate) # must load this to config the python env
+
+# if no python environment exists in the machine
+reticulate::py_config()
+# reticulate::install_miniconda() # should prompt to ask for installation
+
+#rOCAT::install_packages() # you could ignore the line if you have 'OCAT', 'scikit-learn', and 'faiss' packages installed in your python env
 ```
 
 ### import data
 
-```r
+``` r
 # load Test Zeisel data
 data <- R.matlab::readMat('../data/Test_5_Zeisel.mat')
 
@@ -69,7 +75,7 @@ data_list <- c(in_X)
 
 ### run OCAT pipeline
 
-```r
+``` r
 ZW <- run_OCAT(data_list, m_list=list(50), dim=30, 
                 p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE, 
                 random_seed=42)
@@ -77,7 +83,7 @@ ZW <- run_OCAT(data_list, m_list=list(50), dim=30,
 
 ### clustering and evaluation
 
-```r
+``` r
 labels_pred <- evaluate_clusters(np_array(ZW),num_cluster = length(unique(labels_true)))
 
 # get the NMI score between our predicted cell type and the true cell type 
@@ -88,7 +94,7 @@ normalized_mutual_info_score(labels_true, labels_pred)
 
 ### import datasets
 
-```r
+``` r
 # the data is saved in .npz file in this example, so we need scipy from python to help read the data
 scipy <- reticulate::import("scipy.sparse")
 data_path <- "../data/Pancreas/data/"
@@ -109,7 +115,7 @@ batch_true_combined <- rep(files,lengths(labels)) #batch labels
 
 ### run OCAT pipline
 
-```r
+``` r
 m_list <- list(65, 65, 65, 65, 65)
 
 # execute the pipeline in these datasets
@@ -120,7 +126,7 @@ pancreatic_ZW <- run_OCAT(data_list, m_list, dim=60, p=0.3, log_norm=TRUE, l2_no
 
 #### cell type clustering
 
-```r
+``` r
 cell_type_pred <- evaluate_clusters(pancreatic_ZW, num_cluster = length(unique(labels_true_combined)))
 
 # get the NMI score between our predicted cell type and the true cell type
@@ -129,7 +135,7 @@ normalized_mutual_info_score(labels_true_combined,cell_type_pred)
 
 #### batch clustering
 
-```r
+``` r
 batch_pred <- evaluate_clusters(pancreatic_ZW, num_cluster = length(files))
 
 # get the NMI score between our predicted batch and the true batch
