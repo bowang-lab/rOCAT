@@ -47,11 +47,13 @@ data on both single and multiple datasets
 
 The **single** dataset using 3,005 cells and 4,412 genes in the mouse
 somatosensory cortex and hippocampal CA1 region from Zeisel et
-al. (2015) and can be download [here]().
+al. (2015) and can be download
+[here](https://github.com/bowang-lab/OCAT/blob/master/vignettes/Clustering/Test_5_Zeisel.mat).
 
 The **multiple** datasets consist of five scRNA-seq datasets (Baron et
 al. 2016, Muraro et al. 2016, Segerstolpe et al. 2016, Wang et al. 2016,
-Xin et al. 2016) and can be download [here]().
+Xin et al. 2016) and can be download
+[here](https://data.wanglab.ml/OCAT/Pancreas.zip).
 
 ## 2.1 Working with Single Dataset
 
