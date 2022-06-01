@@ -22,6 +22,7 @@ Config/reticulate:
       list(package = 'numpy', version = "1.22.2", pip = TRUE),
       list(package = 'git+https://github.com/bowang-lab/OCAT.git', pip = TRUE),
       list(package = 'scipy', version = "1.8.0", pip = TRUE),
-      list(package = 'scikit-learn', version = "1.0.2", pip = TRUE)
+      list(package = 'scikit-learn', version = "1.0.2", pip = TRUE),
+      list(package = 'umap-learn', pip = TRUE)
     )
   )

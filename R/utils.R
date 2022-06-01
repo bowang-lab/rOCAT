@@ -8,6 +8,8 @@ install_packages <- function(){
     reticulate::py_install('faiss')
   if (!reticulate::py_module_available("sklearn"))
     reticulate::py_install("scikit-learn")
+  if (!reticulate::py_module_available("umap"))
+    reticulate::py_install("umap-learn")
   return(TRUE)
 }
 
