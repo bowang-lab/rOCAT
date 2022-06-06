@@ -9,7 +9,7 @@ preprocess(data_list, log_norm = log_norm, l2_norm = l2_norm)
 preprocess(data_list, log_norm = log_norm, l2_norm = l2_norm)
 }
 \arguments{
-\item{data_list}{\link{(a,n)...(z,n)}    -- list of datasets.}
+\item{data_list}{\link{(a,n)...(z,n)}    -- list of datasets. Dataset in (cell*feature)}
 
 \item{log_norm}{flag for log10 normalization.}
 

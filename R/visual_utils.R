@@ -20,9 +20,9 @@ gg_color_hue <- function(n) {
 #' @title plot_UMAP
 #' @description  The function plot the UMAP embedding
 #' @param embeddding  UMAP embedding
-#' @param labels_true  UMAP embedding
-#' @param labels_predicted  UMAP embedding
-#' @param legend_labels  UMAP embedding
+#' @param labels_true  true labels
+#' @param labels_predicted  predicted labels
+#' @param legend_labels  corresponding class to clustering labels
 #' @param title  UMAP embedding
 #' @param x  the x and y co-ordinates to be used to position the legend. They can be specified by keyword or in any way which is accepted by xy.coords
 #' @param y.intersp  character interspacing factor for vertical (y) line distance

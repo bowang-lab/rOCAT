@@ -15,11 +15,11 @@ plot_UMAP(
 )
 }
 \arguments{
-\item{labels_true}{UMAP embedding}
+\item{labels_true}{true labels}
 
-\item{labels_predicted}{UMAP embedding}
+\item{labels_predicted}{predicted labels}
 
-\item{legend_labels}{UMAP embedding}
+\item{legend_labels}{corresponding class to clustering labels}
 
 \item{title}{UMAP embedding}
 

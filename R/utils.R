@@ -10,6 +10,8 @@ install_packages <- function(){
     reticulate::py_install("scikit-learn")
   if (!reticulate::py_module_available("umap"))
     reticulate::py_install("umap-learn")
+  if (!reticulate::py_module_available("scipy"))
+    reticulate::py_install("scipy")
   return(TRUE)
 }
 
@@ -49,7 +51,7 @@ m_estimate <- function(data_list){
 }
 
 #' @description  normalize cells expression
-#' @param data_list   [(a,n)...(z,n)]    -- list of datasets.
+#' @param data_list   [(a,n)...(z,n)]    -- list of datasets. Dataset in (cell*feature)
 #' @param log_norm  flag for log10 normalization.
 #' @param l2_norm   flag  for L2 normalization.
 #' Out:
@@ -207,7 +209,8 @@ run_OCAT.default <- function(data_list, m_list=NULL, s_list=NULL, dim=NULL,
     data_list <- data_list_Wm[[1]]
     Wm <- data_list_Wm[[2]]
     sparse_list <- sparse_encoding_integration(data_list, m_list=m_list, s_list=s_list, p=p, cn=5, if_inference=TRUE)
-    db_list <- list(sparse_list[[2]],s_list,sparse_list[[4]],Wm)
+    ZW <- sparse_list[[1]]
+    db_list <- list(sparse_list[[2]],sparse_list[[3]],sparse_list[[4]],Wm)
     return(list(ZW,db_list))
   }
   else {
@@ -247,7 +250,8 @@ run_OCAT.Seurat <- function(object, reduction.name ='ocat',m_list=NULL, s_list=N
 #' @export
 evaluate_clusters <- function(ZW, num_clusters){
   OCAT <- reticulate::import('OCAT')
-  labels_pred <- OCAT$evaluate_clusters(reticulate::np_array(ZW),num_clusters)
+  reticulate::py_run_string(glue::glue('num_clusters = int({num_clusters})'))
+  labels_pred <- OCAT$evaluate_clusters(reticulate::np_array(ZW),py$num_clusters)
   return(labels_pred)
 }
 
@@ -261,4 +265,93 @@ normalized_mutual_info_score <- function(labels_true, labels_pred){
   sklearn <- reticulate::import('sklearn')
   NMI <- sklearn$metrics$cluster$normalized_mutual_info_score(labels_true, labels_pred)
   return(NMI)
+}
+
+
+#' @title run_cell_inference
+#' @description  The function predicts the labels of inference data from our ZW in reference data list
+#' @param data_list_inf   data list contains the inference data_list
+#' @param ZW_db  ZW for the reference data_list
+#' @param labels_true_reference  true labels for the reference list
+#' @param db_list  [anchor_list, s_list, W_anchor, Wm] for reference data list
+#' Out:
+#' @return ZW_inf_labels  [ZW for inference data, predicted labels for inference datasets] 
+#' @export
+run_cell_inference <- function(data_list_inf,ZW_db,labels_db,db_list){
+  if (!reticulate::py_module_available("scipy"))
+    reticulate::py_install("scipy")
+  
+  OCAT <- reticulate::import('OCAT')
+  scipy <- reticulate::import("scipy.sparse",convert = FALSE)
+  
+  ZW_db_np <- reticulate::np_array(ZW_db,dtype = 'float32')
+  labels_db_np <- reticulate::np_array(labels_true_reference,dtype='int')
+  reticulate::py_run_string('db_1 = []',convert = FALSE)
+  
+  db_list[[1]] <- reticulate::r_to_py(lapply(db_list[[1]], FUN = function(x) reticulate::np_array(as.matrix(x))))
+  db_list[[2]] <- reticulate::np_array(unlist(db_list[[2]]),dtype = 'int')
+  db_list[[3]] <- reticulate::np_array(as.matrix(db_list[[3]]))
+  db_list[[4]] <- reticulate::np_array(as.matrix(db_list[[4]]))
+  db_list_np <- reticulate::r_to_py(db_list)
+  
+  data_list_inf_np <- lapply(data_list_inf, FUN = function(x) scipy$csr_matrix(x))
+  
+  ZW_inf_labels <- OCAT$run_cell_inference(reticulate::r_to_py(data_list_inf_np),ZW_db=ZW_db_np,labels_db=labels_db_np, db_list = db_list_np)
+  return(ZW_inf_labels)
+}
+
+#' @title compute_lineage
+#' @description  The function infers Lineages over clusters with the OCAT features, predicted/true cluster labels and a user-specified root_cluster.
+#' @param ZW   OCAT features
+#' @param labels_combined  true labels 
+#' @param root_cluster  
+#' @param name  
+#' @param reverse  
+#' Out:
+#' @return Lineage  [Lineage, root_cluster, cluster_labels, tree] 
+#' @export
+compute_lineage <- function(ZW,labels_combined,root_cluster,name,reverse){
+  OCAT <- reticulate::import('OCAT')
+  Lineage <- OCAT$compute_lineage(np_array(ZW),np_array(labels_combined), root_cluster=root_cluster, name=name, reverse=reverse)
+  return(Lineage)
+}
+
+#' @title compute_ptime
+#' @description  The function infers pseudotime for individual cell using the OCAT extracted features and the predicted lineage.
+#' @param ZW   OCAT features
+#' @param labels_combined  true labels 
+#' @param Lineage OCAT Lineage  
+#' @param root_cluster  
+#' @param root_cell  
+#' Out:
+#' @return P  [Ptime, root_cell_list] 
+#' @export
+compute_ptime <- function(ZW,labels_combined, Lineage, root_cluster,root_cell=NULL){
+  OCAT <- reticulate::import('OCAT')
+  P <-  OCAT$compute_ptime(reticulate::np_array(ZW), 
+                     reticulate::np_array(labels_combined),
+                     reticulate::np_array(Lineage,dtype='int'), 
+                     root_cluster=root_cluster,
+                     root_cell = reticulate::r_to_py(root_cell))
+  return(P)
+}
+
+#' @title calculate_marker_gene
+#' @param data  raw data (cell*feature)
+#' @param labels_pred  predicted labels 
+#' @param topn 
+#' @param gene_label  
+#' Out:
+#' @return gene_df_figure  [gene_df,figure] 
+#' @export
+calculate_marker_gene <- function(data_matrix,labels_pred,topn,gene_label){
+  OCAT <- reticulate::import('OCAT')
+  scipy <- reticulate::import("scipy.sparse",convert=FALSE)
+  reticulate::py_run_string(glue::glue('topn = int({topn})'))
+  data <- Matrix::t(data_matrix)
+  gene_df_figure  <- OCAT$calculate_marker_gene(data = scipy$csr_matrix(data),
+                                                labels = reticulate::np_array(labels_pred),
+                                                topn = py$topn,
+                                                gene_labels = reticulate::np_array(gene_label))
+  return(gene_df_figure)
 }

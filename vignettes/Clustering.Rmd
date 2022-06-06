@@ -1,0 +1,76 @@
+---
+title: "Clustering"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Clustering}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+In this page, we demonstrated how to rOCAT doing clustering with the Zeisel et al. (2015) dataset.
+The dataset using 3,005 cells and 4,412 genes in the mouse somatosensory cortex and hippocampal CA1 region and can be download [here](https://github.com/bowang-lab/OCAT/blob/master/vignettes/Clustering/Test_5_Zeisel.mat).
+
+## load package 
+
+```{r setup}
+library(rOCAT)
+library(reticulate)
+```
+
+## import data
+
+```{r import}
+# load Test Zeisel data
+data1 <- R.matlab::readMat('../../data/Test_5_Zeisel.mat')
+
+# extract the gene feature matrix and make it saved as a sparse matrix
+in_X <- as(data1$in.X, 'dgCMatrix')
+
+# extract the labels
+labels_true <- as.vector(data1$true.labs)
+
+# the input data should be a vector of datasets c(datasets1,dataset2,...)
+data_list <- c(in_X)
+```
+
+## run OCAT pipeline
+
+```{r run}
+ZW <- run_OCAT(data_list, m_list=list(50), dim=30, 
+                p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE, 
+                random_seed=42)
+```
+
+## clustering and evaluation
+
+```{r clustering, fig.height=5, fig.width=7}
+labels_pred <- evaluate_clusters(np_array(ZW),num_cluster = length(unique(labels_true)))
+
+# get the NMI score between our predicted cell type and the true cell type 
+normalized_mutual_info_score(labels_true, labels_pred)
+
+umap <- run_UMAP(ZW)
+plot_UMAP(umap,labels_true,labels_pred,title='UMAP plot for OCAT features')
+```
+
+## Gene prioritization
+```{r prioritization}
+gene_label <- data1$label2[1,]
+print(str(in_X))
+gene_df_figure  <- calculate_marker_gene(in_X,labels_pred,5,gene_label)
+gene_df  <- gene_df_figure[[1]]
+fig <- gene_df_figure[[2]]
+```
+
+```{python plot, echo=FALSE,fig.height=4,fig.width=6}
+import matplotlib.pyplot as plt
+r.gene_df_figure[1]
+plt.show()
+```
