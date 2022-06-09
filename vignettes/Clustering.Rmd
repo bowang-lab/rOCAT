@@ -14,10 +14,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-In this page, we demonstrated how to rOCAT doing clustering with the Zeisel et al. (2015) dataset.
-The dataset using 3,005 cells and 4,412 genes in the mouse somatosensory cortex and hippocampal CA1 region and can be download [here](https://github.com/bowang-lab/OCAT/blob/master/vignettes/Clustering/Test_5_Zeisel.mat).
+In this page, we demonstrated how rOCAT do clustering with the Zeisel et al. (2015) dataset. The dataset using 3,005 cells and 4,412 genes in the mouse somatosensory cortex and hippocampal CA1 region and can be download [here](https://github.com/bowang-lab/OCAT/blob/master/vignettes/Clustering/Test_5_Zeisel.mat).
 
-## load package 
+## load package
 
 ```{r setup}
 library(rOCAT)
@@ -61,15 +60,15 @@ plot_UMAP(umap,labels_true,labels_pred,title='UMAP plot for OCAT features')
 ```
 
 ## Gene prioritization
-```{r prioritization}
+
+```{r prioritization, fig.height=6, fig.width=4}
 gene_label <- data1$label2[1,]
-print(str(in_X))
-gene_df_figure  <- calculate_marker_gene(in_X,labels_pred,5,gene_label)
+gene_df_figure  <- calculate_marker_gene(t(in_X),labels_pred,5,gene_label)
 gene_df  <- gene_df_figure[[1]]
 fig <- gene_df_figure[[2]]
 ```
 
-```{python plot, echo=FALSE,fig.height=4,fig.width=6}
+```{python plot,echo=FALSE,fig.height=2,fig.width=3}
 import matplotlib.pyplot as plt
 r.gene_df_figure[1]
 plt.show()

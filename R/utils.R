@@ -337,7 +337,7 @@ compute_ptime <- function(ZW,labels_combined, Lineage, root_cluster,root_cell=NU
 }
 
 #' @title calculate_marker_gene
-#' @param data  raw data (cell*feature)
+#' @param data  raw data (feature x cell)
 #' @param labels_pred  predicted labels 
 #' @param topn 
 #' @param gene_label  
@@ -348,8 +348,7 @@ calculate_marker_gene <- function(data_matrix,labels_pred,topn,gene_label){
   OCAT <- reticulate::import('OCAT')
   scipy <- reticulate::import("scipy.sparse",convert=FALSE)
   reticulate::py_run_string(glue::glue('topn = int({topn})'))
-  data <- Matrix::t(data_matrix)
-  gene_df_figure  <- OCAT$calculate_marker_gene(data = scipy$csr_matrix(data),
+  gene_df_figure  <- OCAT$calculate_marker_gene(data = scipy$csr_matrix(data_matrix),
                                                 labels = reticulate::np_array(labels_pred),
                                                 topn = py$topn,
                                                 gene_labels = reticulate::np_array(gene_label))

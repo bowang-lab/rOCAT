@@ -13,7 +13,7 @@ calculate_marker_gene(data_matrix, labels_pred, topn, gene_label)
 
 \item{gene_label}{Out:}
 
-\item{data}{raw data (cell*feature)}
+\item{data}{raw data (feature x cell)}
 }
 \value{
 gene_df_figure  \link{gene_df,figure}

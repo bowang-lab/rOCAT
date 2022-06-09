@@ -47,11 +47,11 @@ Load in the annotated labels.
 
 ```{r load_label}
 #load labels
-labels <- as.data.frame(read.table('../../data/HSMM/HSMM_label.txt',row.names = 1))
-map <- as.data.frame(cbind(from=c(1,2,3,4,5), 
+library(plyr)
+labels <- data.frame(read.table('../../data/HSMM/HSMM_label.txt',row.names = NULL))
+map <- data.frame(cbind(V1=c(1,2,3,4,5), 
           to=c("Fibroblast","Myotubes","Myoblasts","Undiff","Intermediates")))
-
-labels_mapped <- merge(labels,map,by.x='V1',by.y ='from',all.x = TRUE)$to
+labels_mapped <- plyr::join(labels,map,by='V1')$to
 ```
 
 OCAT.compute_lineage() function infers Lineages over clusters with the OCAT features, predicted/true cluster labels and a user-specified root_cluster.
