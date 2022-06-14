@@ -1,8 +1,4 @@
-In this page, we demonstrated how rOCAT do clustering with the Zeisel et
-al. (2015) dataset. The dataset using 3,005 cells and 4,412 genes in the
-mouse somatosensory cortex and hippocampal CA1 region and can be
-download
-[here](https://github.com/bowang-lab/OCAT/blob/master/vignettes/Clustering/Test_5_Zeisel.mat).
+In this page, we demonstrated how rOCAT do clustering with the Zeisel et al. (2015) dataset. The dataset using 3,005 cells and 4,412 genes in the mouse somatosensory cortex and hippocampal CA1 region and can be download [here](https://github.com/bowang-lab/OCAT/blob/master/vignettes/Clustering/Test_5_Zeisel.mat).
 
 ## load package
 
@@ -43,7 +39,7 @@ download
     umap <- run_UMAP(ZW)
     plot_UMAP(umap,labels_true,labels_pred,title='UMAP plot for OCAT features')
 
-![](/Users/shaochong/Desktop/R/rOCAT/vignettes/Clustering_files/figure-markdown_strict/clustering-1.png)
+<img src="Clustering_files/figure-markdown_strict/clustering-1.png" width="1536"/>
 
 ## Gene prioritization
 
@@ -53,4 +49,4 @@ download
     gene_df  <- gene_df_figure[[1]]
     fig <- gene_df_figure[[2]]
 
-<img src="Clustering_files/figure-markdown_strict/plot-1.png" width="1536" />
+<img src="Clustering_files/figure-markdown_strict/plot-1.png" width="1536"/>
