@@ -55,6 +55,7 @@ labels_pred <- evaluate_clusters(np_array(ZW),num_cluster = length(unique(labels
 # get the NMI score between our predicted cell type and the true cell type 
 normalized_mutual_info_score(labels_true, labels_pred)
 
+# Calculate and Display the UMAP plot
 umap <- run_UMAP(ZW)
 plot_UMAP(umap,labels_true,labels_pred,title='UMAP plot for OCAT features')
 ```
@@ -63,7 +64,8 @@ plot_UMAP(umap,labels_true,labels_pred,title='UMAP plot for OCAT features')
 
 ```{r prioritization, fig.height=6, fig.width=4}
 gene_label <- data1$label2[1,]
-gene_df_figure  <- calculate_marker_gene(t(in_X),labels_pred,5,gene_label)
+preprocess_in_X <- preprocess(data_list,TRUE,TRUE)[[1]]
+gene_df_figure  <- calculate_marker_gene(t(preprocess_in_X),labels_pred,5,gene_label)
 gene_df  <- gene_df_figure[[1]]
 fig <- gene_df_figure[[2]]
 ```

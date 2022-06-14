@@ -28,7 +28,7 @@ gg_color_hue <- function(n) {
 #' @param y.intersp  character interspacing factor for vertical (y) line distance
 #' @export
 plot_UMAP <- function(umap_embedding,labels_true,labels_predicted, legend_labels = NULL, title = '', x='bottomright', y.intersp=1){
-  unique_cell_types <- sort(unique(labels_predicted))
+  unique_cell_types <- sort(factor(unique(labels_true)))
   cell_type_color <- gg_color_hue(length(unique_cell_types))
 
   if (is.null(legend_labels))
