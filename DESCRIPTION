@@ -1,0 +1,31 @@
+Package: rOCAT
+Title: An R Interface to OCAT
+Version: 0.0.0.9
+Authors@R: 
+    person("Chong", "Shao", , "chong.shao@mail.utoronto.ca", role = c("aut", "cre"),)
+Description: This is the R Interface for One Cell At a Time(OCAT) python implmentation.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.0
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports:
+  reticulate,
+  glue,
+  Matrix,
+  R.matlab
+Config/reticulate:
+  list(
+    packages = list(
+      list(package = 'numpy', version = "1.22.2", pip = TRUE),
+      list(package = 'git+https://github.com/bowang-lab/OCAT.git', pip = TRUE),
+      list(package = 'scipy', version = "1.8.0", pip = TRUE),
+      list(package = 'scikit-learn', version = "1.0.2", pip = TRUE),
+      list(package = 'umap-learn', pip = TRUE)
+    )
+  )
+VignetteBuilder: knitr
