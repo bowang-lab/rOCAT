@@ -285,7 +285,7 @@ run_cell_inference <- function(data_list_inf,ZW_db,labels_db,db_list){
   scipy <- reticulate::import("scipy.sparse",convert = FALSE)
   
   ZW_db_np <- reticulate::np_array(ZW_db,dtype = 'float32')
-  labels_db_np <- reticulate::np_array(labels_true_reference,dtype='int')
+  labels_db_np <- reticulate::np_array(labels_db,dtype='int')
   reticulate::py_run_string('db_1 = []',convert = FALSE)
   
   db_list[[1]] <- reticulate::r_to_py(lapply(db_list[[1]], FUN = function(x) reticulate::np_array(as.matrix(x))))
