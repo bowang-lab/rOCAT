@@ -280,13 +280,15 @@ normalized_mutual_info_score <- function(labels_true, labels_pred){
 run_cell_inference <- function(data_list_inf,ZW_db,labels_db,db_list){
   if (!reticulate::py_module_available("scipy"))
     reticulate::py_install("scipy")
+  if (!reticulate::py_module_available("numpy"))
+    reticulate::py_install("numpy")
   
   OCAT <- reticulate::import('OCAT')
+  np <- reticulate::import('numpy',convert = FALSE)
   scipy <- reticulate::import("scipy.sparse",convert = FALSE)
   
   ZW_db_np <- reticulate::np_array(ZW_db,dtype = 'float32')
-  labels_db_np <- reticulate::np_array(labels_db,dtype='int')
-  reticulate::py_run_string('db_1 = []',convert = FALSE)
+  labels_db_np <- np$array(labels_db)
   
   db_list[[1]] <- reticulate::r_to_py(lapply(db_list[[1]], FUN = function(x) reticulate::np_array(as.matrix(x))))
   db_list[[2]] <- reticulate::np_array(unlist(db_list[[2]]),dtype = 'int')
