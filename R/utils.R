@@ -272,7 +272,7 @@ normalized_mutual_info_score <- function(labels_true, labels_pred){
 #' @description  The function predicts the labels of inference data from our ZW in reference data list
 #' @param data_list_inf   data list contains the inference data_list
 #' @param ZW_db  ZW for the reference data_list
-#' @param labels_true_reference  true labels for the reference list
+#' @param labels_db  true labels for the reference list
 #' @param db_list  [anchor_list, s_list, W_anchor, Wm] for reference data list
 #' Out:
 #' @return ZW_inf_labels  [ZW for inference data, predicted labels for inference datasets] 
@@ -280,13 +280,15 @@ normalized_mutual_info_score <- function(labels_true, labels_pred){
 run_cell_inference <- function(data_list_inf,ZW_db,labels_db,db_list){
   if (!reticulate::py_module_available("scipy"))
     reticulate::py_install("scipy")
+  if (!reticulate::py_module_available("numpy"))
+    reticulate::py_install("numpy")
   
   OCAT <- reticulate::import('OCAT')
+  np <- reticulate::import('numpy',convert = FALSE)
   scipy <- reticulate::import("scipy.sparse",convert = FALSE)
   
   ZW_db_np <- reticulate::np_array(ZW_db,dtype = 'float32')
-  labels_db_np <- reticulate::np_array(labels_true_reference,dtype='int')
-  reticulate::py_run_string('db_1 = []',convert = FALSE)
+  labels_db_np <- np$array(labels_db)
   
   db_list[[1]] <- reticulate::r_to_py(lapply(db_list[[1]], FUN = function(x) reticulate::np_array(as.matrix(x))))
   db_list[[2]] <- reticulate::np_array(unlist(db_list[[2]]),dtype = 'int')
