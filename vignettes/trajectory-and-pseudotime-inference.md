@@ -1,6 +1,8 @@
 In this page, we demonstrated how to run trajectory and pseudotime
-inference in [HSMM dataset](https://data.wanglab.ml/OCAT/HSMM.zip) with
-our rOCAT package
+inference in [HSMM
+dataset](https://github.com/bowang-lab/rOCAT/blob/main/vignettes/HSMM_raw_counts.txt)
+with our rOCAT package and HSMM
+[labels](https://data.wanglab.ml/OCAT/HSMM.zip)
 
 # load data and apply OCAT pipeline
 
@@ -12,16 +14,16 @@ our rOCAT package
 
 ## load data
 
-    # load Test Zeisel data
-    data <- read.table('../../data/HSMM/HSMM.txt',header = TRUE,sep=' ',row.names = NULL)
-    row.names <- data$row.names
-    data <- data[,-1]
+    # load HSMM data
+    data <- read.table("HSMM_raw_counts.txt",row.names = 1)
     data <- Matrix::Matrix(as.matrix(data))
     data <- t(data) # format as cell x Gene
 
     data_list <- c(data)
 
     ZW <- run_OCAT(data_list, m_list=list(40), dim=80)
+    #> 
+    #> Done!
     #> [1] "Starting Dimension Reduction"
     #> [1] "Dimension Reduction Finished"
 
