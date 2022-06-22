@@ -34,9 +34,9 @@ data <- read.table("HSMM_raw_counts.txt",row.names = 1)
 data <- Matrix::Matrix(as.matrix(data))
 data <- t(data) # format as cell x Gene
 
-data_list <- c(data)
+data_list <- list(data)
 
-ZW <- run_OCAT(data_list, m_list=list(40), dim=80)
+ZW <- run_OCAT(data_list, m_list=c(40), dim=80)
 ```
 
 # Trajectory inference

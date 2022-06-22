@@ -226,7 +226,7 @@ run_OCAT.Seurat <- function(object, reduction.name ='ocat',m_list=NULL, s_list=N
                              p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE,
                              random_seed=42, assay = "RNA"){
   
-  data_list <- c(t(object@assays$RNA@data))
+  data_list <- list(t(object@assays$RNA@data))
   ZW <- run_OCAT.Default(data_list, m_list, s_list, dim,
                          p, log_norm, l2_norm, if_inference,
                          random_seed) 

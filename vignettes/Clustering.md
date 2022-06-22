@@ -16,12 +16,12 @@ In this page, we demonstrated how rOCAT do clustering with the Zeisel et al. (2
     # extract the labels
     labels_true <- as.vector(data1$true.labs)
 
-    # the input data should be a vector of datasets c(datasets1,dataset2,...)
-    data_list <- c(in_X)
+    # the input data should be a vector of datasets list(datasets1,dataset2,...)
+    data_list <- list(in_X)
 
 ## run OCAT pipeline
 
-    ZW <- run_OCAT(data_list, m_list=list(50), dim=30, 
+    ZW <- run_OCAT(data_list, m_list=c(50), dim=30, 
                     p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE, 
                     random_seed=42)
     #> [1] "Starting Dimension Reduction"

@@ -1,8 +1,4 @@
-In this page, we demonstrated how to run trajectory and pseudotime
-inference in [HSMM
-dataset](https://github.com/bowang-lab/rOCAT/blob/main/vignettes/HSMM_raw_counts.txt)
-with our rOCAT package and HSMM
-[labels](https://data.wanglab.ml/OCAT/HSMM.zip)
+In this page, we demonstrated how to run trajectory and pseudotime inference in [HSMM dataset](https://github.com/bowang-lab/rOCAT/blob/main/vignettes/HSMM_raw_counts.txt) with our rOCAT package and HSMM [labels](https://data.wanglab.ml/OCAT/HSMM.zip)
 
 # load data and apply OCAT pipeline
 
@@ -19,9 +15,9 @@ with our rOCAT package and HSMM
     data <- Matrix::Matrix(as.matrix(data))
     data <- t(data) # format as cell x Gene
 
-    data_list <- c(data)
+    data_list <- list(data)
 
-    ZW <- run_OCAT(data_list, m_list=list(40), dim=80)
+    ZW <- run_OCAT(data_list, m_list=c(40), dim=80)
     #> 
     #> Done!
     #> [1] "Starting Dimension Reduction"
@@ -38,9 +34,7 @@ Load in the annotated labels.
               to=c("Fibroblast","Myotubes","Myoblasts","Undiff","Intermediates")))
     labels_mapped <- plyr::join(labels,map,by='V1')$to
 
-OCAT.compute\_lineage() function infers Lineages over clusters with the
-OCAT features, predicted/true cluster labels and a user-specified
-root\_cluster.
+OCAT.compute_lineage() function infers Lineages over clusters with the OCAT features, predicted/true cluster labels and a user-specified root_cluster.
 
     L <- compute_lineage(ZW,labels_mapped, root_cluster='Myoblasts', name='OE', reverse=0)
     Lineage <- L[[1]]
@@ -50,8 +44,7 @@ root\_cluster.
 
 # Pseudotime inference
 
-OCAT.compute\_ptime() function infers pseudotime for individual cell
-using the OCAT extracted features and the predicted lineage.
+OCAT.compute_ptime() function infers pseudotime for individual cell using the OCAT extracted features and the predicted lineage.
 
     P  <- compute_ptime(ZW, labels_mapped, Lineage, root_cluster)
     Ptime <- P[[1]]

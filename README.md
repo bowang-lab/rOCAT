@@ -82,14 +82,14 @@ in_X <- as(data$in.X, 'dgCMatrix')
 # extract the labels
 labels_true <- as.vector(data$true.labs)
 
-# the input data should be a vector of datasets c(datasets1,dataset2,...)
-data_list <- c(in_X)
+# the input data should be a vector of datasets list(datasets1,dataset2,...)
+data_list <- list(in_X)
 ```
 
 ### 2.1.3 run OCAT pipeline
 
 ``` r
-ZW <- run_OCAT(data_list, m_list=list(50), dim=30, 
+ZW <- run_OCAT(data_list, m_list=c(50), dim=30, 
                 p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE, 
                 random_seed=42)
 ```
@@ -129,7 +129,7 @@ batch_true_combined <- rep(files,lengths(labels)) #batch labels
 ### 2.2.2 run OCAT pipline
 
 ``` r
-m_list <- list(65, 65, 65, 65, 65)
+m_list <- c(65, 65, 65, 65, 65)
 
 # execute the pipeline in these datasets
 pancreatic_ZW <- run_OCAT(data_list, m_list, dim=60, p=0.3, log_norm=TRUE, l2_norm=TRUE)

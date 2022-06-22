@@ -13,6 +13,11 @@ al. (2015) and can be download
 
     # load Test Zeisel data
     data <- R.matlab::readMat('../../data/Test_5_Zeisel.mat')
+    #> 
+    #> Attaching package: 'Matrix'
+    #> The following objects are masked from 'package:tidyr':
+    #> 
+    #>     expand, pack, unpack
 
     # extract the gene feature matrix and make it saved as a sparse matrix
     in_X <- as(data$in.X, 'dgCMatrix')
@@ -31,13 +36,13 @@ al. (2015) and can be download
     labels_true_reference <- labels_true[reference_index]
     labels_true_inference <- labels_true[-reference_index]
 
-    # the input data should be a vector of datasets c(datasets1,dataset2,...)
-    data_list <- c(in_X_reference)
-    data_list_inf  <- c(in_X_inference)
+    # the input data should be a vector of datasets list(datasets1,dataset2,...)
+    data_list <- list(in_X_reference)
+    data_list_inf  <- list(in_X_inference)
 
 # Run OCAT on the reference dataset
 
-    ZW_db_db_list <-  run_OCAT(data_list, m_list=list(50), dim=30, 
+    ZW_db_db_list <-  run_OCAT(data_list, m_list=c(50), dim=30, 
                     p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=TRUE, 
                     random_seed=42)
     #> [1] "Starting Dimension Reduction"

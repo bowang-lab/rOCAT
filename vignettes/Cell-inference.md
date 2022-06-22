@@ -19,7 +19,7 @@ our rOCAT package
     data <- Matrix::Matrix(as.matrix(data))
     data <- t(data) # format as cell x Gene
 
-    data_list <- c(data)
+    data_list <- list(data)
 
     ZW <- run_OCAT(data_list, m_list=list(40), dim=80)
     #> [1] "Starting Dimension Reduction"
