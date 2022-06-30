@@ -18,8 +18,9 @@ install_packages <- function(){
 #' @description  normalize all cells by log10(x+1)
 #' @export
 normalize_data <- function(data_list){
-  data_list <- sapply(data_list, function(x) log10(x+1))
-  data_list <- sapply(data_list, function(x) Matrix::Matrix(x,sparse = TRUE))
+  data_list <- lapply(data_list,
+                      function(m) {m@x <- log10(m@x+1)
+                      return(m)})
   return(data_list)
 }
 
@@ -28,9 +29,7 @@ normalize_data <- function(data_list){
 l2_normalization <- function(data_list){
   for (i in seq_along(data_list)){
     l2_norm <- sqrt(Matrix::colSums(data_list[[i]]^2))
-    l2_norm[l2_norm==0] <- 0.00001
-    data_list[[i]] <- sweep(data_list[[i]],2,l2_norm,'/')
-    data_list[[i]] <- Matrix::Matrix(data_list[[i]], sparse = TRUE)
+    data_list[[i]]@x <- data_list[[i]]@x / rep.int(l2_norm, diff(data_list[[i]]@p))
   }
   return(data_list)
 }
