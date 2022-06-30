@@ -96,7 +96,15 @@ apply_dim_reduct <- function(data_list, dim=NULL, mode='FSM', random_seed=42, up
   
   print("Starting Dimension Reduction")
   scipy <- reticulate::import("scipy.sparse",convert = FALSE)
-  preprocessed_converted_data <- lapply(data_list, function(x) scipy$csr_matrix(reticulate::np_array(x,dtype='float32')))
+  data_list <- lapply(data_list, function(x) as(x,'dgTMatrix'))
+  preprocessed_converted_data <- lapply(data_list, 
+                                        function(m) {
+                                          i <- reticulate::np_array(m@i,dtype='int')
+                                          j <- reticulate::np_array(m@j,dtype='int')
+                                          x <- reticulate::np_array(m@x,dtype='float32')
+                                          shape <- reticulate::np_array(c(m@Dim[[1]],m@Dim[[2]]),dtype='int')
+                                          scipy$csr_matrix(reticulate::tuple(list(x,list(i,j))), shape=shape)
+                                          })
   reticulate::py_run_string(glue::glue("dim = int({dim});random_seed = {random_seed};upsample={reticulate::r_to_py(upsample)};mode='{mode}'"))
   dim_reducted <- OCAT$apply_dim_reduct(preprocessed_converted_data,dim=py$dim,mode = py$mode, random_seed = py$random_seed,upsample = py$upsample)
   print("Dimension Reduction Finished")
