@@ -5,11 +5,9 @@
 #' @return OCAT_umap calculated UMAP embedding
 #' @export
 run_UMAP <- function(embeddding){
-  if (!reticulate::py_module_available("umap"))
-    reticulate::py_install("umap-learn")
-  umap <- reticulate::import('umap')
-  OCAT_umap <- umap$UMAP()$fit_transform(embeddding)
-  return(OCAT_umap)
+  OCAT <- reticulate::import('OCAT')
+  plot_umap <- OCAT$plot_umap(reticulate::np_array(ZW),reticulate::r_to_py(labels_pred))
+  return(plot_umap[[2]])
 }
 
 gg_color_hue <- function(n) {
@@ -20,15 +18,14 @@ gg_color_hue <- function(n) {
 #' @title plot_UMAP
 #' @description  The function plot the UMAP embedding
 #' @param embeddding  UMAP embedding
-#' @param labels_true  true labels
-#' @param labels_predicted  predicted labels
+#' @param labels labels
 #' @param legend_labels  corresponding class to clustering labels
 #' @param title  UMAP embedding
 #' @param x  the x and y co-ordinates to be used to position the legend. They can be specified by keyword or in any way which is accepted by xy.coords
 #' @param y.intersp  character interspacing factor for vertical (y) line distance
 #' @export
-plot_UMAP <- function(umap_embedding,labels_true,labels_predicted, legend_labels = NULL, title = '', x='bottomright', y.intersp=1){
-  unique_cell_types <- sort(factor(unique(labels_true)))
+plot_UMAP <- function(umap_embedding,labels, legend_labels = NULL, title = '', x='bottomright', y.intersp=1){
+  unique_cell_types <- sort(factor(unique(labels)))
   cell_type_color <- gg_color_hue(length(unique_cell_types))
 
   if (is.null(legend_labels))
@@ -39,7 +36,7 @@ plot_UMAP <- function(umap_embedding,labels_true,labels_predicted, legend_labels
        bty='L', tck=FALSE,fg='grey', mgp=c(1,1,0), main=title)
 
   for(i in 1:length(unique_cell_types)){
-    temp_ind <- which(labels_predicted==unique_cell_types[i])
+    temp_ind <- which(labels==unique_cell_types[i])
     points(umap_embedding[temp_ind,1], umap_embedding[temp_ind,2],
            col=cell_type_color[i], pch=20, cex=0.5)
   }

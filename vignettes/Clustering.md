@@ -46,7 +46,5 @@ In this page, we demonstrated how rOCAT do clustering with the Zeisel et al. (2
     gene_label <- data1$label2[1,]
     preprocess_in_X <- preprocess(data_list,TRUE,TRUE)[[1]]
     gene_df_figure  <- calculate_marker_gene(t(preprocess_in_X),labels_pred,5,gene_label)
-    gene_df  <- gene_df_figure[[1]]
-    fig <- gene_df_figure[[2]]
 
 <img src="Clustering_files/figure-markdown_strict/plot-1.png" width="1536"/>

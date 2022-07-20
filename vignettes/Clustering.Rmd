@@ -44,34 +44,27 @@ data_list <- list(in_X)
 ```{r run}
 ZW <- run_OCAT(data_list, m_list=c(50), dim=30, 
                 p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE, 
-                random_seed=42)
+                random_seed=42, labels_true = NULL)
 ```
 
 ## clustering and evaluation
 
 ```{r clustering, fig.height=5, fig.width=7}
-labels_pred <- evaluate_clusters(np_array(ZW),num_cluster = length(unique(labels_true)))
+labels_pred <- evaluate_clusters(ZW,num_cluster = length(unique(labels_true)))
 
 # get the NMI score between our predicted cell type and the true cell type 
 normalized_mutual_info_score(labels_true, labels_pred)
 
 # Calculate and Display the UMAP plot
 umap <- run_UMAP(ZW)
-plot_UMAP(umap,labels_true,labels_pred,title='UMAP plot for OCAT features')
+plot_UMAP(umap,labels_pred,title='UMAP plot for OCAT features')
 ```
 
 ## Gene prioritization
 
 ```{r prioritization, fig.height=6, fig.width=4, echo=TRUE}
 gene_label <- data1$label2[1,]
-preprocess_in_X <- preprocess(data_list,TRUE,TRUE)[[1]]
-gene_df_figure  <- calculate_marker_gene(t(preprocess_in_X),labels_pred,5,gene_label)
-gene_df  <- gene_df_figure[[1]]
-fig <- gene_df_figure[[2]]
+preprocess_in_X <- rOCAT::preprocess(data_list,TRUE,TRUE)[[1]]
+gene_df_figure  <- rOCAT::calculate_marker_gene(t(preprocess_in_X),labels_pred,5,gene_label)
 ```
 
-```{python plot,echo=FALSE,fig.height=2,fig.width=3}
-import matplotlib.pyplot as plt
-r.gene_df_figure[1]
-plt.show()
-```

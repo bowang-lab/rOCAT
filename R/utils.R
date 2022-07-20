@@ -21,6 +21,9 @@ normalize_data <- function(data_list){
   data_list <- lapply(data_list,
                       function(m) {m@x <- log10(m@x+1)
                       return(m)})
+  data_list <- lapply(data_list, 
+                      function(m) {m@x[is.na(m@x)] <- 0
+                      return(m)})
   return(data_list)
 }
 
@@ -31,6 +34,9 @@ l2_normalization <- function(data_list){
     l2_norm <- sqrt(Matrix::colSums(data_list[[i]]^2))
     data_list[[i]]@x <- data_list[[i]]@x / rep.int(l2_norm, diff(data_list[[i]]@p))
   }
+  data_list <- lapply(data_list, 
+                      function(m) {m@x[is.na(m@x)] <- 0
+                      return(m)})
   return(data_list)
 }
 
@@ -105,6 +111,7 @@ apply_dim_reduct <- function(data_list, dim=NULL, mode='FSM', random_seed=42, up
                                           shape <- reticulate::np_array(c(m@Dim[[1]],m@Dim[[2]]),dtype='int')
                                           scipy$csr_matrix(reticulate::tuple(list(x,list(i,j))), shape=shape)
                                           })
+  
   reticulate::py_run_string(glue::glue("dim = int({dim});random_seed = {random_seed};upsample={reticulate::r_to_py(upsample)};mode='{mode}'"))
   dim_reducted <- OCAT$apply_dim_reduct(preprocessed_converted_data,dim=py$dim,mode = py$mode, random_seed = py$random_seed,upsample = py$upsample)
   print("Dimension Reduction Finished")
@@ -145,38 +152,26 @@ find_anchors <- function(data_list,m_list){
 #' @return ZW        (a+...+z, m)  OCAT feature matrix
 #'
 #' @export
-sparse_encoding_integration <- function(data_list, m_list, s_list, p=0.3, cn=5, if_inference=TRUE){
+sparse_encoding_integration <- function(data_list, m_list, s_list, p=0.3, cn=5, if_inference=FALSE,true_known=FALSE){
   OCAT <- reticulate::import('OCAT')
-  anchor_list <- find_anchors(data_list, m_list)
+  print('Start Sparse Encoding')
+  if (!reticulate::py_module_available("numpy"))
+    reticulate::py_install("numpy")
   
-  Z_list <- NULL
-  for (i in seq_along(data_list)){
-    dataset_Z_list <- NULL
-    
-    dataset <- data_list[[i]]
-    dataset <- reticulate::np_array(dataset,dtype='float32')
-    
-    for (j in seq_along(anchor_list)){
-      anchor <- reticulate::np_array(anchor_list[[j]],dtype='float32')
-      reticulate::py_run_string(glue::glue("s = {s_list[[j]]};flag=2;cn = {cn}"))
-      Z <- OCAT$sparse_encoding$AnchorGraph(dataset$transpose(),anchor$transpose(),py$s,py$flag,py$cn)
-      Z <- as(Z,'matrix')
-      dataset_Z_list <- cbind(dataset_Z_list,Z)
-      dataset_Z_list <- as(dataset_Z_list,'matrix')
-    }
-    Z_list <- rbind(Z_list,dataset_Z_list)
-    dataset_Z_list <- as(Z_list,'matrix') #make sure it keeps the dim with multiple datasets
-  }
-  Z <- reticulate::np_array(Z_list)
-  ZW_Wanchor <- OCAT$sparse_encoding$Z_to_ZW(Z)
-  ZW <- ZW_Wanchor[[1]]
-  ZW[is.na(ZW)] <- 0
-  W_anchor <- ZW_Wanchor[[2]]
-  ZW <- OCAT$sparse_encoding$norm(ZW)
-  if (if_inference)
-    return(list(ZW,anchor_list,s_list,W_anchor))
-  else
-    return(ZW)
+  np <- reticulate::import('numpy',convert = FALSE)
+  
+  data_list_np <- lapply(data_list, FUN = function(x) np$ascontiguousarray(x,dtype = 'float32'))
+  m_list <- np$ascontiguousarray(m_list,dtype='int')$tolist()
+  s_list <- np$ascontiguousarray(s_list,dtype='int')$tolist()
+  reticulate::py_run_string(glue::glue("p = {p};cn = {cn}"))
+  if_inference <- reticulate::r_to_py(if_inference)
+  true_known <- reticulate::r_to_py(true_known)
+  
+  data_list_np <- reticulate::r_to_py(data_list_np)
+  ZW <- OCAT$sparse_encoding_integration(data_list = data_list_np,  m_list=m_list, s_list=s_list, p=py$p, cn=py$cn, if_inference=if_inference, true_known=true_known)
+  print('Finished Sparse Encoding ....')
+  return(ZW)
+  
 }
 
 
@@ -199,7 +194,7 @@ run_OCAT <- function(object, group.by.vars, ...) {
 
 run_OCAT.default <- function(data_list, m_list=NULL, s_list=NULL, dim=NULL,
                      p=0.3, log_norm=TRUE, l2_norm=TRUE, if_inference=FALSE,
-                     random_seed=42){
+                     random_seed=42, labels_true=NULL){
   if (is.null(m_list))
     m_list <- m_estimate(data_list)
   if (is.null(s_list))
@@ -215,14 +210,41 @@ run_OCAT.default <- function(data_list, m_list=NULL, s_list=NULL, dim=NULL,
     data_list_Wm <- apply_dim_reduct(data_list, dim=dim, mode='FSM', random_seed=random_seed)
     data_list <- data_list_Wm[[1]]
     Wm <- data_list_Wm[[2]]
-    sparse_list <- sparse_encoding_integration(data_list, m_list=m_list, s_list=s_list, p=p, cn=5, if_inference=TRUE)
+    true_known <- FALSE
+    if (!is.null(labels_true)){
+      true_known <- TRUE
+      data_combined <- do.call(rbind, data_list)
+      labels_true_combined <- do.call(rbind, labels_true)[1,]
+      unique_labels <- unique(labels_true_combined)
+      
+      data_list  <- list(data_combined)
+      for (i in  seq(length(unique_labels))){
+        ind <- which(labels_true_combined==unique_labels[[i]])
+        data_list[[i]]<-data_combined[ind,]
+      }
+      
+      mlist_sum <- sum(m_list)
+      m_list <- unlist(lapply(data_list, function(x) dim(x)[[1]]))
+      total_cell_num <- sum(m_list)
+      m_list <- round(m_list/total_cell_num*mlist_sum)
+      m_list <- unlist(lapply(m_list, function(x) if (x<1) 1 else x))
+      cat("New m_list based on the true cluster:", m_list)
+      print('')
+      s_list <- lapply(m_list,"*",p)
+      s_list <- unlist(lapply(s_list,round))
+    }
+    
+    sparse_list <- sparse_encoding_integration(data_list, m_list=m_list, s_list=s_list, p=p, cn=5, if_inference=TRUE, true_known=true_known)
     ZW <- sparse_list[[1]]
-    db_list <- list(sparse_list[[2]],sparse_list[[3]],sparse_list[[4]],Wm)
+    if (!is.null(labels_true))
+      db_list <- list(sparse_list[[2]],sparse_list[[3]],sparse_list[[4]],Wm, m_list)
+    else
+      db_list <- list(sparse_list[[2]],sparse_list[[3]],sparse_list[[4]],Wm)
     return(list(ZW,db_list))
   }
   else {
     data_list <- apply_dim_reduct(data_list, dim=dim, mode='FSM', random_seed=random_seed)[[1]]
-    ZW <- sparse_encoding_integration(data_list, m_list=m_list, s_list=s_list, p=p, cn=5, if_inference=FALSE)
+    ZW <- sparse_encoding_integration(data_list, m_list=m_list, s_list=s_list, p=p, cn=5)
     return(ZW)
   }
 }
@@ -284,7 +306,7 @@ normalized_mutual_info_score <- function(labels_true, labels_pred){
 #' Out:
 #' @return ZW_inf_labels  [ZW for inference data, predicted labels for inference datasets] 
 #' @export
-run_cell_inference <- function(data_list_inf,ZW_db,labels_db,db_list){
+run_cell_inference <- function(data_list_inf,labels_db,db_list,true_known=FALSE, ZW_db=NULL){
   if (!reticulate::py_module_available("scipy"))
     reticulate::py_install("scipy")
   if (!reticulate::py_module_available("numpy"))
@@ -294,18 +316,30 @@ run_cell_inference <- function(data_list_inf,ZW_db,labels_db,db_list){
   np <- reticulate::import('numpy',convert = FALSE)
   scipy <- reticulate::import("scipy.sparse",convert = FALSE)
   
-  ZW_db_np <- reticulate::np_array(ZW_db,dtype = 'float32')
-  labels_db_np <- np$array(labels_db)
+  if (!is.null(ZW_db)){
+    ZW_db_np <- reticulate::np_array(ZW_db,dtype = 'float32')
+  }else{
+      ZW_db_np <- reticulate::r_to_py(ZW_db)
+  }
+  
+  if (is.numeric(labels_db)){
+    labels_db_np <- np$array(labels_db,dtype='int')
+  }else{labels_db_np <- np$array(labels_db)
+    }
   
   db_list[[1]] <- reticulate::r_to_py(lapply(db_list[[1]], FUN = function(x) reticulate::np_array(as.matrix(x))))
   db_list[[2]] <- reticulate::np_array(unlist(db_list[[2]]),dtype = 'int')
   db_list[[3]] <- reticulate::np_array(as.matrix(db_list[[3]]))
   db_list[[4]] <- reticulate::np_array(as.matrix(db_list[[4]]))
+  if (true_known){
+    db_list[[5]] <- reticulate::np_array(db_list[[5]],dtype='int')
+  }
   db_list_np <- reticulate::r_to_py(db_list)
+  true_known <- reticulate::r_to_py(true_known)
   
   data_list_inf_np <- lapply(data_list_inf, FUN = function(x) scipy$csr_matrix(x))
   
-  ZW_inf_labels <- OCAT$run_cell_inference(reticulate::r_to_py(data_list_inf_np),ZW_db=ZW_db_np,labels_db=labels_db_np, db_list = db_list_np)
+  ZW_inf_labels <- OCAT$run_cell_inference(reticulate::r_to_py(data_list_inf_np),ZW_db=ZW_db_np,labels_db=labels_db_np, db_list = db_list_np, true_known = true_known)
   return(ZW_inf_labels)
 }
 
