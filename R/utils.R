@@ -51,7 +51,7 @@ m_estimate <- function(data_list){
     else
       m_list <- append(m_list,60)
   }
-  print(paste0('estimated m_list: ', m_list))
+  message('Estimated m_list: ',paste0(m_list,collapse = ','))
   return(m_list)
 }
 
@@ -100,7 +100,7 @@ apply_dim_reduct <- function(data_list, dim=NULL, mode='FSM', random_seed=42, up
 
   OCAT <- reticulate::import('OCAT')
   
-  print("Starting Dimension Reduction")
+  message("Starting Dimension Reduction")
   scipy <- reticulate::import("scipy.sparse",convert = FALSE)
   data_list <- lapply(data_list, function(x) as(x,'dgTMatrix'))
   preprocessed_converted_data <- lapply(data_list, 
@@ -114,7 +114,7 @@ apply_dim_reduct <- function(data_list, dim=NULL, mode='FSM', random_seed=42, up
   
   reticulate::py_run_string(glue::glue("dim = int({dim});random_seed = {random_seed};upsample={reticulate::r_to_py(upsample)};mode='{mode}'"))
   dim_reducted <- OCAT$apply_dim_reduct(preprocessed_converted_data,dim=py$dim,mode = py$mode, random_seed = py$random_seed,upsample = py$upsample)
-  print("Dimension Reduction Finished")
+  message("Dimension Reduction Finished")
   return(dim_reducted)
 }
 
@@ -154,7 +154,7 @@ find_anchors <- function(data_list,m_list){
 #' @export
 sparse_encoding_integration <- function(data_list, m_list, s_list, p=0.3, cn=5, if_inference=FALSE,true_known=FALSE){
   OCAT <- reticulate::import('OCAT')
-  print('Start Sparse Encoding')
+  message('Start Sparse Encoding')
   if (!reticulate::py_module_available("numpy"))
     reticulate::py_install("numpy")
   
@@ -169,7 +169,7 @@ sparse_encoding_integration <- function(data_list, m_list, s_list, p=0.3, cn=5, 
   
   data_list_np <- reticulate::r_to_py(data_list_np)
   ZW <- OCAT$sparse_encoding_integration(data_list = data_list_np,  m_list=m_list, s_list=s_list, p=py$p, cn=py$cn, if_inference=if_inference, true_known=true_known)
-  print('Finished Sparse Encoding ....')
+  message('Finished Sparse Encoding ....')
   return(ZW)
   
 }
@@ -214,9 +214,9 @@ run_OCAT.default <- function(data_list, m_list=NULL, s_list=NULL, dim=NULL,
     if (!is.null(labels_true)){
       true_known <- TRUE
       data_combined <- do.call(rbind, data_list)
-      labels_true_combined <- do.call(rbind, labels_true)[1,]
+      labels_true_combined <- unlist(ref_labels)
       unique_labels <- unique(labels_true_combined)
-      
+
       data_list  <- list(data_combined)
       for (i in  seq(length(unique_labels))){
         ind <- which(labels_true_combined==unique_labels[[i]])
@@ -229,17 +229,16 @@ run_OCAT.default <- function(data_list, m_list=NULL, s_list=NULL, dim=NULL,
       m_list <- round(m_list/total_cell_num*mlist_sum)
       m_list <- unlist(lapply(m_list, function(x) if (x<1) 1 else x))
       cat("New m_list based on the true cluster:", m_list)
-      print('')
       s_list <- lapply(m_list,"*",p)
       s_list <- unlist(lapply(s_list,round))
     }
-    
     sparse_list <- sparse_encoding_integration(data_list, m_list=m_list, s_list=s_list, p=p, cn=5, if_inference=TRUE, true_known=true_known)
     ZW <- sparse_list[[1]]
-    if (!is.null(labels_true))
+    if (!is.null(labels_true)){
       db_list <- list(sparse_list[[2]],sparse_list[[3]],sparse_list[[4]],Wm, m_list)
-    else
+    }else{
       db_list <- list(sparse_list[[2]],sparse_list[[3]],sparse_list[[4]],Wm)
+    }
     return(list(ZW,db_list))
   }
   else {
@@ -306,7 +305,7 @@ normalized_mutual_info_score <- function(labels_true, labels_pred){
 #' Out:
 #' @return ZW_inf_labels  [ZW for inference data, predicted labels for inference datasets] 
 #' @export
-run_cell_inference <- function(data_list_inf,labels_db,db_list,true_known=FALSE, ZW_db=NULL){
+run_cell_inference <- function(data_list_inf,labels_db,db_list,ref_genes,inf_genes,true_known=FALSE, ZW_db=NULL){
   if (!reticulate::py_module_available("scipy"))
     reticulate::py_install("scipy")
   if (!reticulate::py_module_available("numpy"))
@@ -315,18 +314,18 @@ run_cell_inference <- function(data_list_inf,labels_db,db_list,true_known=FALSE,
   OCAT <- reticulate::import('OCAT')
   np <- reticulate::import('numpy',convert = FALSE)
   scipy <- reticulate::import("scipy.sparse",convert = FALSE)
-  
+
   if (!is.null(ZW_db)){
     ZW_db_np <- reticulate::np_array(ZW_db,dtype = 'float32')
   }else{
-      ZW_db_np <- reticulate::r_to_py(ZW_db)
+    ZW_db_np <- reticulate::r_to_py(ZW_db)
   }
-  
+
   if (is.numeric(labels_db)){
     labels_db_np <- np$array(labels_db,dtype='int')
   }else{labels_db_np <- np$array(labels_db)
     }
-  
+
   db_list[[1]] <- reticulate::r_to_py(lapply(db_list[[1]], FUN = function(x) reticulate::np_array(as.matrix(x))))
   db_list[[2]] <- reticulate::np_array(unlist(db_list[[2]]),dtype = 'int')
   db_list[[3]] <- reticulate::np_array(as.matrix(db_list[[3]]))
@@ -334,14 +333,17 @@ run_cell_inference <- function(data_list_inf,labels_db,db_list,true_known=FALSE,
   if (true_known){
     db_list[[5]] <- reticulate::np_array(db_list[[5]],dtype='int')
   }
+  
   db_list_np <- reticulate::r_to_py(db_list)
   true_known <- reticulate::r_to_py(true_known)
+
+  ref_genes <- reticulate::r_to_py(ref_genes)
+  inf_genes <- reticulate::r_to_py(inf_genes)
   
-  data_list_inf_np <- lapply(data_list_inf, FUN = function(x) scipy$csr_matrix(x))
-  
-  ZW_inf_labels <- OCAT$run_cell_inference(reticulate::r_to_py(data_list_inf_np),ZW_db=ZW_db_np,labels_db=labels_db_np, db_list = db_list_np, true_known = true_known)
+  data_list_inf_np <- lapply(data_list_inf, FUN = function(x) scipy$csr_matrix(x,dtype='float32'))
+  ZW_inf_labels <- OCAT$run_cell_inference(data_list=reticulate::r_to_py(data_list_inf_np),ref_genes = ref_genes, inf_genes = inf_genes, ZW_db=ZW_db_np,labels_db=labels_db_np, db_list = db_list_np, true_known = true_known)
   return(ZW_inf_labels)
-}
+}   
 
 #' @title compute_lineage
 #' @description  The function infers Lineages over clusters with the OCAT features, predicted/true cluster labels and a user-specified root_cluster.
