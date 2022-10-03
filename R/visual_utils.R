@@ -4,9 +4,9 @@
 #' Out:
 #' @return OCAT_umap calculated UMAP embedding
 #' @export
-run_UMAP <- function(embeddding){
+run_UMAP <- function(embeddding,labels_pred){
   OCAT <- reticulate::import('OCAT')
-  plot_umap <- OCAT$plot_umap(reticulate::np_array(ZW),reticulate::r_to_py(labels_pred))
+  plot_umap <- OCAT$plot_umap(reticulate::np_array(embeddding),reticulate::r_to_py(labels_pred))
   return(plot_umap[[2]])
 }
 
@@ -24,7 +24,8 @@ gg_color_hue <- function(n) {
 #' @param x  the x and y co-ordinates to be used to position the legend. They can be specified by keyword or in any way which is accepted by xy.coords
 #' @param y.intersp  character interspacing factor for vertical (y) line distance
 #' @export
-plot_UMAP <- function(umap_embedding,labels, legend_labels = NULL, title = '', x='bottomright', y.intersp=1){
+plot_UMAP <- function(ZW,labels, legend_labels = NULL, title = '', x='bottomright', y.intersp=1){
+  umap_embedding = run_UMAP(ZW,labels)
   unique_cell_types <- sort(factor(unique(labels)))
   cell_type_color <- gg_color_hue(length(unique_cell_types))
 
