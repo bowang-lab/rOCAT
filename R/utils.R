@@ -306,7 +306,7 @@ normalized_mutual_info_score <- function(labels_true, labels_pred){
 #' Out:
 #' @return ZW_inf_labels  [ZW for inference data, predicted labels for inference datasets] 
 #' @export
-run_cell_inference <- function(data_list_inf,labels_db,db_list,ref_genes,inf_genes,true_known=FALSE, ZW_db=NULL, log_norm = TRUE, l2_norm=TRUE){
+run_cell_inference <- function(data_list_inf,labels_db,db_list,ref_genes = list(),inf_genes = list(),true_known=FALSE, ZW_db=NULL, log_norm = TRUE, l2_norm=TRUE){
   if (!reticulate::py_module_available("scipy"))
     reticulate::py_install("scipy")
   if (!reticulate::py_module_available("numpy"))
