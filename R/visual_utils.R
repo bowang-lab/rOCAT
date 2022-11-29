@@ -4,9 +4,9 @@
 #' Out:
 #' @return OCAT_umap calculated UMAP embedding
 #' @export
-run_UMAP <- function(embeddding,labels_pred){
+run_UMAP <- function(embedding,labels_pred){
   OCAT <- reticulate::import('OCAT')
-  umap <- OCAT$plot_umap(reticulate::np_array(embeddding),reticulate::r_to_py(labels_pred),show_plot=reticulate::r_to_py(FALSE))
+  umap <- OCAT$plot_umap(reticulate::np_array(embedding),reticulate::r_to_py(labels_pred),show_plot=reticulate::r_to_py(FALSE))
   return(umap)
 }
 
